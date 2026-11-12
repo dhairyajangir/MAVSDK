@@ -456,15 +456,24 @@ class Driver:
         if version != "libprotoc 29.1":
             raise ValueError(f"Wrong actual protoc version: {version}")
         packages = {}
-        for pattern, wanted in (("*protobuf*config-version.cmake", "5.29.1"),
-                                ("*gRPCConfigVersion.cmake", "1.68.2")):
+        # Protobuf's source/runtime version is 5.29.1, while its CMake
+        # package version is 29.1.0 and protoc reports 29.1.
+        for pattern, wanted, runtime in (("*protobuf*config-version.cmake", "29.1.0", "5.29.1"),
+                                         ("*gRPCConfigVersion.cmake", "1.68.2", "1.68.2")):
             found = list(self.deps.rglob(pattern))
             if len(found) != 1:
                 raise ValueError(f"Cannot uniquely identify {pattern}")
             content = found[0].read_text()
+            match = re.search(r'set\(PACKAGE_VERSION\s+"?([^"\s)]+)"?\)', content)
+            observed = match.group(1) if match else None
+            packages[wanted] = {"path": str(found[0]), "sha256": digest(found[0]),
+                                "raw_text": content, "observed_cmake_package_version": observed,
+                                "expected_cmake_package_version": wanted,
+                                "expected_source_runtime_version": runtime}
+            save(self.out / "package-version-checks.json", packages)
             if not re.search(r'set\(PACKAGE_VERSION\s+"?' + re.escape(wanted) + r'(?:\.0)?"?\)', content):
-                raise ValueError(f"Unexpected package version in {found[0].name}")
-            packages[wanted] = {"path": str(found[0]), "sha256": digest(found[0])}
+                raise ValueError(f"Unexpected package version in {found[0].name}: "
+                                 f"expected {wanted!r}, observed {observed!r}")
         self.prefix_before = prefix_snapshot(self.deps)
         save(self.out / "dependency-prefix-manifest.json", self.prefix_before)
         save(self.out / "generator-identity.json", {
