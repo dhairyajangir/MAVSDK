@@ -115,10 +115,11 @@ jobs:
           CARRIER_SHA: ${{ steps.input.outputs.candidate_ref }}
           HELPER_SHA: ${{ github.sha }}
         run: |
-          mkdir -p helper-output/work helper-output/cache/xdg helper-output/cache/gradle helper-output/cache/pip
+          mkdir -p helper-output/work helper-output/cache/native helper-output/cache/xdg helper-output/cache/gradle helper-output/cache/pip
           docker run --rm --pull=never --cpus=2 \
             --user "$(id -u):$(id -g)" \
             --volume "$GITHUB_WORKSPACE:/workspace" \
+            --volume "$GITHUB_WORKSPACE/helper-output/cache/native:/.cache" \
             --workdir /workspace \
             --env XDG_CACHE_HOME=/workspace/helper-output/cache/xdg \
             --env GRADLE_USER_HOME=/workspace/helper-output/cache/gradle \

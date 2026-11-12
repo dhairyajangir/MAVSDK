@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import pwd
 import re
 import selectors
 import shutil
@@ -57,6 +58,68 @@ def save(path: Path, value: object) -> None:
         stream.flush()
         os.fsync(stream.fileno())
     temporary.replace(path)
+
+
+def stage_shared_libraries(libs: list[Path], destination_dir: Path) -> dict[str, object]:
+    # A SONAME symlink can precede its real file in glob order. Copy the whole
+    # install layout before resolving any link or hashing its target.
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    for source in libs:
+        destination = destination_dir / source.name
+        if source.is_symlink():
+            destination.symlink_to(os.readlink(source))
+        else:
+            shutil.copyfile(source, destination)
+    identity = {}
+    for source in libs:
+        destination = destination_dir / source.name
+        target = destination.resolve(strict=True)
+        if not target.is_relative_to(destination_dir.resolve()):
+            raise ValueError(f"Staged native library leaves its directory: {source.name}")
+        if not target.is_file():
+            raise ValueError(f"Staged native library is not a regular file: {source.name}")
+        identity[source.name] = {"path": str(destination), "sha256": digest(target)}
+    return identity
+
+
+def native_cache_preflight(receipt_path: Path) -> dict[str, object]:
+    # Match unchanged Linux fs_utils.cpp: HOME, or getpwuid when HOME is absent;
+    # XDG_CACHE_HOME is not consulted by MAVSDK's native cache implementation.
+    native_home_environment_before = os.environ.get("HOME")
+    codex_environment_before = os.environ.get("CODEX_HOME")
+    try:
+        account = pwd.getpwuid(os.getuid())
+        passwd_record = {"name": account.pw_name, "home": account.pw_dir}
+    except KeyError:
+        account = None
+        passwd_record = None
+    native_home_directory = native_home_environment_before if native_home_environment_before is not None else account.pw_dir if account else None
+    record = {"uid": os.getuid(), "gid": os.getgid(), "passwd": passwd_record,
+              "HOME": native_home_environment_before, "home_source": "HOME" if native_home_environment_before is not None else "getpwuid",
+              "XDG_CACHE_HOME": os.environ.get("XDG_CACHE_HOME"),
+              "expected_cache_directory": "/.cache/mavsdk", "status": "started"}
+    save(receipt_path, record)
+    try:
+        if native_home_directory is None:
+            raise RuntimeError("Native cache has neither HOME nor a passwd home")
+        cache = Path(native_home_directory) / ".cache/mavsdk"
+        record["calculated_native_cache_directory"] = str(cache)
+        if cache != Path("/.cache/mavsdk"):
+            raise RuntimeError("Native cache path differs from the task-owned /.cache mount")
+        cache.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(prefix="helper-write-probe-", dir=cache) as probe:
+            probe.write(b"MAVSDK helper native cache preflight\n")
+            probe.flush()
+            os.fsync(probe.fileno())
+        record.update(status="passed", write_probe=True)
+        return record
+    except Exception as error:
+        record.update(status="failed", error=f"{type(error).__name__}: {error}")
+        raise
+    finally:
+        record["HOME_unchanged"] = os.environ.get("HOME") == native_home_environment_before
+        record["CODEX_HOME_unchanged"] = os.environ.get("CODEX_HOME") == codex_environment_before
+        save(receipt_path, record)
 
 
 def relative(value: str) -> Path:
@@ -687,14 +750,7 @@ class Driver:
         libs = list((install / "lib").glob("libcmavsdk.so*"))
         if not libs:
             raise ValueError("C wrapper install has no libcmavsdk.so")
-        identity = {}
-        for p in libs:
-            destination = lib_dir / p.name
-            if p.is_symlink():
-                destination.symlink_to(os.readlink(p))
-            else:
-                shutil.copyfile(p, destination)
-            identity[p.name] = {"path": str(destination), "sha256": digest(destination.resolve())}
+        identity = stage_shared_libraries(libs, lib_dir)
         save(self.out / "python-staged-native.json", identity)
         venv = self.work / "python-runtime"
         self.run("python-runtime-venv", ["python3", "-m", "venv", str(venv)], self.work, timeout=120)
@@ -741,6 +797,8 @@ class Driver:
 
     def execute(self):
         self.phase("validate-inputs", self.validate)
+        self.phase("native-cache-preflight", lambda: native_cache_preflight(
+            self.out / "native-cache-preflight.json"))
         versions = {}
         for name, argv in (("cmake", ["cmake", "--version"]),
                            ("compiler", ["c++", "--version"]),
