@@ -1,0 +1,95 @@
+diff --git a/cpp/src/mavsdk_server/test/CMakeLists.txt b/cpp/src/mavsdk_server/test/CMakeLists.txt
+index af2a1ce..91dbd87 100644
+--- a/cpp/src/mavsdk_server/test/CMakeLists.txt
++++ b/cpp/src/mavsdk_server/test/CMakeLists.txt
+@@ -5,6 +5,7 @@ add_executable(unit_tests_mavsdk_server
+     mavsdk_server_main.cpp
+     connection_initiator_test.cpp
+     core_service_impl_test.cpp
++    ftp_service_impl_test.cpp
+     mission_service_impl_test.cpp
+     offboard_service_impl_test.cpp
+     telemetry_service_impl_test.cpp
+diff --git a/cpp/src/mavsdk_server/test/ftp_service_impl_test.cpp b/cpp/src/mavsdk_server/test/ftp_service_impl_test.cpp
+new file mode 100644
+index 0000000..3905124
+--- /dev/null
++++ b/cpp/src/mavsdk_server/test/ftp_service_impl_test.cpp
+@@ -0,0 +1,77 @@
++#include <array>
++#include <gtest/gtest.h>
++#include <string>
++
++#include "ftp/ftp_service_impl.hpp"
++
++namespace {
++
++using Service = mavsdk::mavsdk_server::FtpServiceImpl<>;
++using Convention = mavsdk::Ftp::ServerErrnoConvention;
++using Result = mavsdk::Ftp::Result;
++
++TEST(FtpServiceImplEnumTest, UnknownConventionDoesNotBecomeUnspecified)
++{
++    EXPECT_EQ(
++        Service::translateFromRpcServerErrnoConvention(
++            static_cast<mavsdk::rpc::ftp::ServerErrnoConvention>(999)),
++        Convention::Unknown);
++    EXPECT_NE(
++        Service::translateFromRpcServerErrnoConvention(
++            static_cast<mavsdk::rpc::ftp::ServerErrnoConvention>(999)),
++        Convention::Unspecified);
++}
++
++TEST(FtpServiceImplEnumTest, OmittedConventionAndUnknownWireValueRemainUnknown)
++{
++    mavsdk::rpc::ftp::SetServerErrnoConventionRequest omitted;
++    omitted.set_component_id(1);
++    EXPECT_EQ(
++        Service::translateFromRpcServerErrnoConvention(omitted.convention()), Convention::Unknown);
++
++    // component_id=1, convention=999: exercise the actual proto3 wire parser.
++    const std::string bytes{"\x08\x01\x10\xe7\x07", 5};
++    mavsdk::rpc::ftp::SetServerErrnoConventionRequest unknown;
++    ASSERT_TRUE(unknown.ParseFromString(bytes));
++    EXPECT_EQ(unknown.component_id(), 1u);
++    EXPECT_EQ(static_cast<int>(unknown.convention()), 999);
++    EXPECT_EQ(
++        Service::translateFromRpcServerErrnoConvention(unknown.convention()), Convention::Unknown);
++}
++
++TEST(FtpServiceImplEnumTest, ConventionValuesRoundTrip)
++{
++    const std::array<Convention, 3> conventions{
++        Convention::Unknown, Convention::Unspecified, Convention::LinuxGeneric};
++    for (size_t index = 0; index < conventions.size(); ++index) {
++        const auto rpc = Service::translateToRpcServerErrnoConvention(conventions[index]);
++        EXPECT_EQ(static_cast<int>(rpc), static_cast<int>(index));
++        EXPECT_EQ(Service::translateFromRpcServerErrnoConvention(rpc), conventions[index]);
++    }
++}
++
++TEST(FtpServiceImplEnumTest, ExistingResultNumbersRemainStableAndDirectoryNotEmptyIsAppended)
++{
++    const std::array<Result, 14> results{
++        Result::Unknown,
++        Result::Success,
++        Result::Next,
++        Result::Timeout,
++        Result::Busy,
++        Result::FileIoError,
++        Result::FileExists,
++        Result::FileDoesNotExist,
++        Result::FileProtected,
++        Result::InvalidParameter,
++        Result::Unsupported,
++        Result::ProtocolError,
++        Result::NoSystem,
++        Result::DirectoryNotEmpty};
++    for (size_t index = 0; index < results.size(); ++index) {
++        const auto rpc = Service::translateToRpcResult(results[index]);
++        EXPECT_EQ(static_cast<int>(rpc), static_cast<int>(index));
++        EXPECT_EQ(Service::translateFromRpcResult(rpc), results[index]);
++    }
++}
++
++} // namespace

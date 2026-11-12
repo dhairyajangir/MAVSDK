@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "frozen": true,
+  "repository": "dhairyajangir/MAVSDK",
+  "baseline_sdk_commit": "6b5940a83da831cc04c1e42286dc12b987bc242d",
+  "baseline_proto_commit": "df90b7ebba3c9c73d2e43c87885709fd34c7eb25",
+  "container_image": "docker.io/mavsdk/mavsdk-ubuntu-26.04@sha256:833cc96c63600976475f02a58110c22d8073bf2a1987cf047786ff206795eab5",
+  "patches": [
+    {
+      "role": "native",
+      "path": ".github/ci/mavsdk3175/payloads/native-owned-candidate.patch",
+      "sha256": "fb41ae43185cb44b1898a2679106be85ccea7e6ea42823d94d3b7b9947ae9600",
+      "paths": [
+        "cpp/src/mavsdk/core/mavlink_ftp_client.cpp",
+        "cpp/src/mavsdk/core/mavlink_ftp_client.hpp",
+        "cpp/src/mavsdk/plugins/ftp/ftp_impl.cpp",
+        "cpp/src/mavsdk/plugins/ftp/ftp_impl.hpp",
+        "cpp/src/system_tests/ftp_result_test_peer.hpp",
+        "cpp/src/system_tests/ftp_malformed_nak.cpp",
+        "cpp/src/system_tests/ftp_server_errno.cpp",
+        "cpp/src/system_tests/CMakeLists.txt"
+      ]
+    },
+    {
+      "role": "proto",
+      "path": ".github/ci/mavsdk3175/payloads/proto-api-candidate-v2.patch",
+      "sha256": "32e91fe7d851ffb3b45c5ec9cc423625afed83def1a1e1f8b96071c6a9cb2e4c",
+      "paths": [
+        "protos/ftp/ftp.proto"
+      ]
+    },
+    {
+      "role": "baseline-tests",
+      "path": ".github/ci/mavsdk3175/payloads/baseline-malformed-tests-only.patch",
+      "sha256": "156fc68a3892afe772f9515fb1676a9bceafcebd2db14cce3e7501752f07f310",
+      "paths": [
+        "cpp/src/system_tests/ftp_result_test_peer.hpp",
+        "cpp/src/system_tests/ftp_malformed_nak.cpp",
+        "cpp/src/system_tests/CMakeLists.txt"
+      ]
+    },
+    {
+      "role": "api-tests",
+      "path": ".github/ci/mavsdk3175/payloads/server-enum-regression-v2.patch",
+      "sha256": "fe4e30a2790037773ee97d6579ba8447d2a8a09e25b152b4f73307a611cb3deb",
+      "paths": [
+        "cpp/src/mavsdk_server/test/CMakeLists.txt",
+        "cpp/src/mavsdk_server/test/ftp_service_impl_test.cpp"
+      ]
+    }
+  ],
+  "candidate_expected_files": {
+    "cpp/src/mavsdk/core/mavlink_ftp_client.cpp": "9281283dd5fd2c75921a86a5e6a534406d9d631139af9d30f15d04fe61b79f87",
+    "cpp/src/mavsdk/core/mavlink_ftp_client.hpp": "04f714e5de2dadddc7e9ee87b8d9cd43ac8acd16ce696746c948bf4e7e808f6f",
+    "cpp/src/mavsdk/plugins/ftp/ftp_impl.cpp": "7095a08d5941b14d2877d8628690e047870aedb82c672b14b1912873f9a9a0ff",
+    "cpp/src/mavsdk/plugins/ftp/ftp_impl.hpp": "1b47d1271ed44aacaf6f7d07c345cd7fe04b76a301c8e768e9ac8b12d8e2d361",
+    "cpp/src/system_tests/ftp_result_test_peer.hpp": "2041fa2f1e218bdfbbb55ee99cb6b8974573f02a44a89475841456c21f9c3c49",
+    "cpp/src/system_tests/ftp_malformed_nak.cpp": "8facfa0daec79b70c315fde25ee6c708872ba775acd154dc51a29b3f6b091067",
+    "cpp/src/system_tests/ftp_server_errno.cpp": "654b607984d3a144b10e349eb7d731dbd576bb1cdefe983b3a687ea88e5c04d0",
+    "cpp/src/system_tests/CMakeLists.txt": "edad575c793425d9bf79c275b437c0e86869fd81afea7ae72a5af99fa08dd797",
+    "cpp/src/mavsdk_server/test/CMakeLists.txt": "ff20c4bdde2a9b6694ea9c48393e7689da22f8c307480befd27c05da10f9e102",
+    "cpp/src/mavsdk_server/test/ftp_service_impl_test.cpp": "ef92e8a69ad1e6494f74903300f2303e2e806c5baab79030418bf365262e3f1f"
+  },
+  "proto_expected_files": {
+    "protos/ftp/ftp.proto": "552ded31297af87062f3e31615740d7aaf5396f3a0c780eece817e04af5c6177"
+  },
+  "baseline_expected_files": {
+    "cpp/src/system_tests/CMakeLists.txt": "22488508b3f0f79063aae8119f30d371491440b7a44c322598234b7950e4c406",
+    "cpp/src/system_tests/ftp_malformed_nak.cpp": "8facfa0daec79b70c315fde25ee6c708872ba775acd154dc51a29b3f6b091067",
+    "cpp/src/system_tests/ftp_result_test_peer.hpp": "2041fa2f1e218bdfbbb55ee99cb6b8974573f02a44a89475841456c21f9c3c49"
+  },
+  "harness_files": [
+    {
+      "path": ".github/ci/mavsdk3175/payloads/harness/CMakeLists.txt",
+      "sha256": "2f66ea5ea943e1bbe69769d564d899d23cb9311a360d02ce28bbd42f751a6c91",
+      "destination": "CMakeLists.txt"
+    }
+  ],
+  "regeneration_allowlist": [
+    "cpp/src/mavsdk/plugins/ftp/ftp.cpp",
+    "cpp/src/mavsdk/plugins/ftp/include/plugins/ftp/ftp.hpp",
+    "cpp/src/mavsdk_server/src/plugins/ftp/ftp_service_impl.hpp",
+    "cpp/src/mavsdk_server/src/generated/ftp/ftp.pb.cc",
+    "cpp/src/mavsdk_server/src/generated/ftp/ftp.pb.h",
+    "cpp/src/mavsdk_server/src/generated/ftp/ftp.grpc.pb.cc",
+    "cpp/src/mavsdk_server/src/generated/ftp/ftp.grpc.pb.h",
+    "c/src/cmavsdk/plugins/ftp/ftp.cpp",
+    "c/src/cmavsdk/plugins/ftp/ftp.h",
+    "py/mavsdk/mavsdk/plugins/ftp/__init__.py",
+    "py/mavsdk/mavsdk/plugins/ftp/ftp.py",
+    "py/mavsdk/mavsdk/asyncio/plugins/ftp/__init__.py",
+    "py/mavsdk/mavsdk/asyncio/plugins/ftp/ftp.py",
+    "jni/jvm/src/main/java/io/mavsdk/jni/plugins/ftp/NativeFtp.java",
+    "jni/plugins/ftp/ftp_jni.cpp",
+    "kt/mavsdk-kotlin/src/commonMain/kotlin/io/mavsdk/kotlin/plugins/ftp/Ftp.kt",
+    "kt/mavsdk-kotlin/src/jvmAndroidMain/kotlin/io/mavsdk/kotlin/plugins/ftp/FtpNative.kt",
+    "docs/en/cpp/api_reference/classmavsdk_1_1_ftp.md"
+  ],
+  "baseline_harness_cases": [
+    "FtpResultTest.NakMissingErrorCode",
+    "FtpResultTest.ErrnoNakMissingErrno",
+    "FtpResultTest.ListNakMissingEofCode",
+    "FtpResultTest.OversizedNakStillIgnored",
+    "FtpResultTest.DownloadNakMissingEofCode",
+    "FtpResultTest.TerminateNakMissingInvalidSessionCode"
+  ],
+  "baseline_harness_failures": [
+    "FtpResultTest.NakMissingErrorCode",
+    "FtpResultTest.ErrnoNakMissingErrno",
+    "FtpResultTest.ListNakMissingEofCode",
+    "FtpResultTest.DownloadNakMissingEofCode",
+    "FtpResultTest.TerminateNakMissingInvalidSessionCode"
+  ],
+  "candidate_harness_cases": [
+    "FtpResultTest.NakMissingErrorCode",
+    "FtpResultTest.ErrnoNakMissingErrno",
+    "FtpResultTest.ListNakMissingEofCode",
+    "FtpResultTest.OversizedNakStillIgnored",
+    "FtpResultTest.DownloadNakMissingEofCode",
+    "FtpResultTest.TerminateNakMissingInvalidSessionCode",
+    "FtpResultTest.UnspecifiedDirectoryErrnoRemainsProtocolError",
+    "FtpResultTest.ExplicitDirectoryErrnoAndClear",
+    "FtpResultTest.ComponentErrnoProfilesAreIsolated",
+    "FtpResultTest.InvalidErrnoConfigurationDoesNotChangeSelection",
+    "FtpResultTest.ErrnoProfileCapturedWhenOperationStarts",
+    "FtpResultTest.QueuedOperationCapturesProfileAtItsOwnStart",
+    "FtpResultTest.OtherSourceComponentDoesNotUseTargetErrnoProfile",
+    "FtpResultTest.OtherErrorsAndAckRetainTheirResults",
+    "FtpResultTest.ShortErrnoDoesNotUseUndeclaredDirectoryError",
+    "FtpResultTest.OtherOperationsDoNotUseDirectoryErrno",
+    "FtpErrnoResult.DirectoryNotEmptyStringsAndStableValues"
+  ],
+  "extra_python_requirements": {
+    "path": ".github/ci/mavsdk3175/payloads/probes/probe-requirements.txt",
+    "sha256": "e13a00d86f96605163e1ddf7962d9e914648c834bc6cd289de3f14b607f38a4d"
+  },
+  "probes": [
+    {
+      "name": "frontend-contract",
+      "path": ".github/ci/mavsdk3175/payloads/probes/frontend-contract-probe-v2.py",
+      "sha256": "6d1fb6b16e0ebdba5582cbed24c6398cb8621959c009dfe24ab59e153530fcf3",
+      "argv": [
+        "{baseline_sdk}",
+        "{candidate_sdk}",
+        "{output_json}"
+      ],
+      "required": true
+    },
+    {
+      "name": "python-ftp-transport",
+      "path": ".github/ci/mavsdk3175/payloads/probes/ftp_bindings_transport_probe.py",
+      "sha256": "2480a810e8c7b87dc7041c03445bce195c755532d17fd15f3cb2df83ef5ee221",
+      "argv": [
+        "--sdk-root",
+        "{candidate_sdk}",
+        "--native-root",
+        "{candidate_install}",
+        "--output",
+        "{output_json}"
+      ],
+      "required": true
+    },
+    {
+      "name": "grpc-ftp-transport",
+      "path": ".github/ci/mavsdk3175/payloads/probes/ftp_grpc_transport_probe.py",
+      "sha256": "96a01bd56a698f1c6d767558785a030d6fd8c966c9597a48c06e0729dfd758b9",
+      "argv": [
+        "--sdk-root",
+        "{candidate_sdk}",
+        "--native-root",
+        "{candidate_install}",
+        "--server",
+        "{candidate_install}/bin/mavsdk_server",
+        "--scratch",
+        "{scratch}",
+        "--output",
+        "{output_json}"
+      ],
+      "required": true
+    }
+  ],
+  "probe_support_files": [
+    {
+      "path": ".github/ci/mavsdk3175/payloads/probes/ftp_wire_peer.py",
+      "sha256": "bd9615ad392c693c9b5a505bcc983f1047d704ff896ad86a32f273e15903cd49"
+    }
+  ],
+  "candidate_server_required_cases": [
+    "FtpServiceImplEnumTest.UnknownConventionDoesNotBecomeUnspecified",
+    "FtpServiceImplEnumTest.OmittedConventionAndUnknownWireValueRemainUnknown",
+    "FtpServiceImplEnumTest.ConventionValuesRoundTrip",
+    "FtpServiceImplEnumTest.ExistingResultNumbersRemainStableAndDirectoryNotEmptyIsAppended"
+  ]
+}

@@ -1,0 +1,4 @@
+pymavlink==2.4.50
+grpcio-tools==1.85.1
+grpcio==1.85.1
+protobuf==7.36.2
